@@ -27,7 +27,7 @@ jobs:
     - name: Create Hello World HTML page
       run: |
         mkdir -p dist
-        cat > dist/index.html << 'EOF'
+        cat > dist/index.html << EOF
         <!DOCTYPE html>
         <html lang="en">
         <head>
