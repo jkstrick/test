@@ -1,0 +1,104 @@
+name: Build and Deploy Hello World to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Create Hello World HTML page
+      run: |
+        mkdir -p dist
+        cat > dist/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Hello World</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                }
+                .container {
+                    text-align: center;
+                    padding: 2rem;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 10px;
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+                    backdrop-filter: blur(4px);
+                    border: 1px solid rgba(255, 255, 255, 0.18);
+                }
+                h1 {
+                    font-size: 3rem;
+                    margin: 0;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+                }
+                p {
+                    font-size: 1.2rem;
+                    margin-top: 1rem;
+                    opacity: 0.9;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>Hello World! 🌍</h1>
+                <p>This page was built and deployed using GitHub Actions!</p>
+                <p>Generated on: $(date)</p>
+            </div>
+        </body>
+        </html>
+        EOF
+    
+    - name: Upload HTML artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hello-world-page
+        path: dist/
+        retention-days: 30
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+    
+    - name: Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: dist/
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
